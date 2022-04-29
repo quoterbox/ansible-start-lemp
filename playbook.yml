@@ -1,0 +1,59 @@
+# LEMP PLAYBOOK
+
+---
+- hosts: "all"
+  become: true
+  tasks:
+
+
+  # Installing NGINX
+
+  - name: "Install NGINX via apt"
+    ansible.builtin.apt:
+      name: "nginx"
+      state: "latest"
+      update_cache: true
+
+  - name: "Delete /var/www/html folder"
+    ansible.builtin.file:
+      path: "/var/www/html"
+      state: "absent"
+
+  - name: "Copy our html page to /var/www/html folder"
+    ansible.builtin.copy:
+      src: "files/html"
+      dest: "/var/www/"
+      owner: "www"
+      group: "www"
+      mode: "0644"
+
+
+  # Installing MYSQL
+
+  - name: "Install MYSQL via apt"
+    ansible.builtin.apt:
+      name: "mysql-server"
+      state: "latest"
+      update_cache: true
+
+  - name: "Install pymysql via apt"
+      ansible.builtin.apt:
+        name: "python3-pymysql"
+        state: "latest"
+        update_cache: true
+
+  - name: "Setup root user"
+    community.mysql.mysql_user:
+      name: "root"
+      password: "password"
+      login_user: "root"
+      login_password: "password"
+      check_implicit_admin: true
+      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+
+
+
+
+
+
+
