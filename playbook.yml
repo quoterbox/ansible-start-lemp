@@ -30,30 +30,76 @@
 
   # Installing MYSQL
 
-  - name: "Install MYSQL via apt"
+#  - name: "Install MYSQL via apt"
+#    ansible.builtin.apt:
+#      name: "mysql-server"
+#      state: "latest"
+#      update_cache: true
+#
+#  - name: "Install pymysql via apt"
+#      ansible.builtin.apt:
+#        name: "python3-pymysql"
+#        state: "latest"
+#        update_cache: true
+#
+#  - name: "Setup root user"
+#    community.mysql.mysql_user:
+#      name: "root"
+#      password: "password"
+#      login_user: "root"
+#      login_password: "password"
+#      check_implicit_admin: true
+#      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+#
+#  - name: "Remove anonymous users"
+#    community.mysql.mysql_user:
+#      name: ""
+#      state: "absent"
+#      login_user: "root"
+#      login_password: "password"
+#
+#  - name: "Remove anonymous database"
+#      community.mysql.mysql_db:
+#        name: "test"
+#        state: "absent"
+#        login_user: "root"
+#        login_password: "password"
+
+
+  # Installing PHP
+  - name: "Installing php-fpm and php-mysql"
     ansible.builtin.apt:
-      name: "mysql-server"
+      name: "{{ item }}"
       state: "latest"
       update_cache: true
+    with_items:
+      - "php-fpm"
+      - "php-mysql"
 
-  - name: "Install pymysql via apt"
-      ansible.builtin.apt:
-        name: "python3-pymysql"
-        state: "latest"
-        update_cache: true
+  - name: "Copy test file to test website config for test website"
+    ansible.builtin.copy:
+      src: "files/joqer"
+      dest: "/var/www/"
+      owner: "www"
+      group: "www"
+      mode: "0644"
 
-  - name: "Setup root user"
-    community.mysql.mysql_user:
-      name: "root"
-      password: "password"
-      login_user: "root"
-      login_password: "password"
-      check_implicit_admin: true
-      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+  - name: "Copy NGINX config for test website"
+    ansible.builtin.copy:
+      src: "files/nginx/nginx.conf"
+      dest: "/etc/nginx/sites-available/joqer.conf"
+      owner: "www"
+      group: "www"
+      mode: "0644"
 
+  - name: "Delete /var/html folder"
+    ansible.builtin.file:
+      src: "/etc/nginx/sites-available/joqer.conf"
+      dest: "/etc/nginx/sites-enabled/joqer"
+      state: "link"
 
-
-
-
-
+  - name: "Reload NGINX"
+    ansible.builtin.service:
+      name: "nginx"
+      state: "reloaded"
 
