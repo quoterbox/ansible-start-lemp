@@ -24,7 +24,7 @@ php_packages:
   - php8.1-mbstring
   - php8.1-zip
   - php8.1-mysql
-#php_date_timezone: "UTC"
+php_date_timezone: "Europe/Moscow"
 php_webserver_daemon: "nginx"
 php_fpm_daemon: php8.1-fpm
 php_conf_paths:
@@ -89,19 +89,25 @@ nginx_vhosts:
   - listen: "80 default_server"
     server_name: "{{ domain }}"
     root: "/var/www/{{ domain }}/public"
-    index: "index.php index.html index.htm"
+    index: "index.php"
     state: "present"
     template: "{{ nginx_vhost_template }}"
     extra_parameters: |
       location / {
-          try_files $uri $uri/ /index.php$is_args$args;
+        try_files $uri $uri/ /index.php$is_args$args;
+        if ($uri ~* "^(.*/)index\.php(/?)(.*)") {
+          return 301 $1$3;
+        }
       }
       location ~ \.php$ {
-          fastcgi_split_path_info ^(.+\.php)(/.+)$;
-          fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-          fastcgi_index index.php;
-          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-          include fastcgi_params;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+      }
+      location ~ \.php$ {
+        return 404;
       }
 
 ## Certbot Details if used instead of own SSL Certificates

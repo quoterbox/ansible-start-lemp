@@ -1,9 +1,13 @@
 ---
-domain: joqer
-ansible_user: www
+domain: joqer.ru
+web_user: www
+#ansible_user: www
 sudo_user: root
 ansible_connection: ssh
-ansible_ssh_private_key_file: ../.ssh/www_key
+ansible_ssh_private_key_file: ../.ssh/www_root_key
+web_user_private_key_file: ../.ssh/www_key
+web_user_public_key_file: ../.ssh/www_key.pub
+#ansible_ssh_private_key_file: ../.ssh/www_key
 #sudo_user_private_key_file: ../.ssh/www_root_key
 #sudo_user: root
 #web_user: www
