@@ -35,13 +35,12 @@
   hosts: www
   user: "{{ sudo_user }}"
   become: true
-#  become_user: "{{ web_user }}"
   vars_files:
     - group_vars/main.yml
     - vars/main.yml
   roles:
     - { role: geerlingguy.nginx }
-#    - { role: geerlingguy.certbot }
+    - { role: geerlingguy.certbot }
     - { role: geerlingguy.php }
 #    - { role: geerlingguy.mysql }
 #    - { role: geerlingguy.php-mysql }
@@ -54,15 +53,7 @@
       ansible.builtin.service:
         name: nginx
         state: reloaded
-#      notify:
-#        - restart nginx
     - name: "Restart NGINX"
       ansible.builtin.service:
         name: nginx
         state: restarted
-#  handlers:
-#    - name: restart nginx
-#      ansible.builtin.service:
-#        name: nginx
-#        state: reloaded
-#      become: yes
