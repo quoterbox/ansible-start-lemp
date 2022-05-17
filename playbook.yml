@@ -49,10 +49,10 @@
 #    - { role: geerlingguy.composer }
 #    - { role: geerlingguy.nodejs }
   tasks:
-    - name: "Reload NGINX"
-      ansible.builtin.service:
-        name: nginx
-        state: reloaded
+#    - name: "Reload NGINX"
+#      ansible.builtin.service:
+#        name: nginx
+#        state: reloaded
     - name: "Restart NGINX"
       ansible.builtin.service:
         name: nginx
