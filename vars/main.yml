@@ -1,6 +1,19 @@
+php_enable_php_fpm: true
+php_fpm_pools:
+  - pool_name: "www"
+    pool_template: "www.conf.j2"
+    pool_listen: "127.0.0.1:9000"
+    pool_listen_allowed_clients: "127.0.0.1"
+    pool_pm: "dynamic"
+    pool_pm_max_children: "5"
+    pool_pm_start_servers: "2"
+    pool_pm_min_spare_servers: "1"
+    pool_pm_max_spare_servers: "3"
+    pool_pm_max_requests: "500"
 php_fpm_pool_user: "{{ web_user }}"
 php_fpm_pool_group: "{{ web_user_group }}"
 php_version: "8.1"
+php_default_version_debian: "8.1"
 php_packages_state: latest
 php_use_managed_ini: true
 php_memory_limit: "512M"
@@ -29,13 +42,6 @@ php_packages:
 php_date_timezone: "Europe/Moscow"
 php_webserver_daemon: "nginx"
 php_fpm_daemon: php8.1-fpm
-php_conf_paths:
-  - /etc/php/8.1/fpm
-  - /etc/php/8.1/cli
-
-php_extension_conf_paths:
-  - /etc/php/8.1/fpm/conf.d
-  - /etc/php/8.1/cli/conf.d
 
 mysql_packages:
   - mariadb-client
@@ -121,7 +127,8 @@ nginx_vhosts:
 
       location ~ \.php$ {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        #fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
