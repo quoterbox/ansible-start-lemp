@@ -157,3 +157,6 @@
 `<?php phpinfo();`
 
 Теперь папка сайта должна быть доступна по адресу `http(s)://ВАШ_ДОМЕН`
+
+### LICENSE
+[MIT License](./LICENSE.md)
