@@ -75,7 +75,7 @@
 
 12. Копируем публичный ключ на сервер для пользователя **root** (для пользователя **www** ключ будет копироваться с помощью Ansible):
 
-`ssh-copy-id -i ~/.ssh/www_root_key root@YOUR.OWN.IP.ADDRESS`
+`ssh-copy-id -i ~/.ssh/www_root_key.pub root@YOUR.OWN.IP.ADDRESS`
 
 13. Появится запрос пароля для **root**, введите его.
 
