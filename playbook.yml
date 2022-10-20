@@ -12,6 +12,77 @@
     - name: "Add repository for PHP 8.1"
       apt_repository: "repo='ppa:ondrej/php'"
 
+- name: "Build and install BROTLI for NGINX"
+  hosts: www
+  become: true
+  vars_files:
+    - group_vars/main.yml
+    - vars/main.yml
+  tasks:
+    - name: "Gather the apt package facts"
+      package_facts:
+        manager: auto
+    - name: "Get Nginx version and set variable"
+      set_fact:
+        nginx_version: "{{ ansible_facts.packages['nginx'][0].version | regex_search('^[0-9.]*') }}"
+    - name: "Install needed packages"
+      apt:
+        pkg: "{{ item }}"
+        state: latest
+      with_items:
+        - git
+        - gcc
+        - cmake
+        - libpcre3
+        - libpcre3-dev
+        - zlib1g
+        - zlib1g-dev
+        - openssl
+        - libssl-dev
+    - name: "Download and unarchive Nginx source code of version {{ nginx_version }}"
+      unarchive:
+        src: https://nginx.org/download/nginx-{{ nginx_version }}.tar.gz
+        dest: ~/
+        remote_src: yes
+    - name: "Git clone Brotli module (google/ngx_brotli)"
+      git:
+        repo: https://github.com/google/ngx_brotli.git
+        dest: ~/ngx_brotli
+    - name: "Configure Brotli module"
+      command:
+        chdir: ~/nginx-{{ nginx_version }}
+        cmd: ./configure --with-compat --add-dynamic-module=../ngx_brotli
+    - name: "Make Brotli module (Dynamically loaded)"
+      make:
+        chdir: ~/nginx-{{ nginx_version }}
+        target: modules
+    - name: "Copy compiled Brotli module to /usr/share/nginx/modules"
+      copy:
+        remote_src: yes
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: "{{ sudo_user }}"
+        group: "{{ sudo_user }}"
+        mode: 0644
+      with_items:
+        - { src: "~/nginx-{{ nginx_version }}/objs/ngx_http_brotli_filter_module.so", dest: "/usr/share/nginx/modules" }
+        - { src: "~/nginx-{{ nginx_version }}/objs/ngx_http_brotli_static_module.so", dest: "/usr/share/nginx/modules" }
+    - name: "Add Brotli module to the start of Nginx config"
+      lineinfile:
+        path: /etc/nginx/nginx.conf
+        insertbefore: BOF
+        line: "{{ item.line }}"
+      with_items:
+        - { line: 'load_module "modules/ngx_http_brotli_filter_module.so";' }
+        - { line: 'load_module "modules/ngx_http_brotli_static_module.so";' }
+    - name: "Delete unnecessary directories"
+      file:
+        state: absent
+        path: "{{ item.path }}"
+      with_items:
+        - { path: "~/ngx_brotli" }
+        - { path: "~/nginx-{{ nginx_version }}" }
+
 - name: "Add the user {{ web_user }}"
   hosts: www
   user: "{{ sudo_user }}"
@@ -25,7 +96,7 @@
       ansible.builtin.user:
         name: "{{ web_user }}"
         comment: "Web user"
-        group: "www-data"
+        group: "{{ web_user_group }}"
     - name: "Set up authorized keys for the web user"
       authorized_key:
         user: "{{ web_user }}"
@@ -49,10 +120,6 @@
 #    - { role: geerlingguy.composer }
 #    - { role: geerlingguy.nodejs }
   tasks:
-#    - name: "Reload NGINX"
-#      ansible.builtin.service:
-#        name: nginx
-#        state: reloaded
     - name: "Restart NGINX"
       ansible.builtin.service:
         name: nginx

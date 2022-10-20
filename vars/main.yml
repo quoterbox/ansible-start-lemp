@@ -61,6 +61,9 @@ mysql_users:
 
 nginx_server_names_hash_bucket_size: "128"
 nginx_remove_default_vhost: true
+#nginx_proxy_cache_path: "/var/cache/nginx keys_zone=myowncache:10m"
+nginx_conf_template: "{{ playbook_dir }}/templates/nginx.conf.j2"
+
 #one vhost, one block, filename is server_name unless added
 nginx_vhosts:
   - listen: "80"
@@ -78,6 +81,9 @@ nginx_vhosts:
     filename: "{{domain}}.conf"
     extra_parameters: |
 
+      # NGINX Cache
+      #proxy_cache myowncache;
+
       # Force www.site.com => site.com
       if ($host ~* ^www\.(.+)$) {
         return 301 $scheme://$1$request_uri;
@@ -92,7 +98,11 @@ nginx_vhosts:
       add_header X-Content-Type-Options 'nosniff' always;
 
       # HSTS
-      #add_header Strict-Transport-Security 'max-age=2592000' always;
+      add_header Strict-Transport-Security 'max-age=2592000' always;
+
+      # Browser cache
+      # expires max;
+      add_header Cache-Control 'max-age=31536000' always;
 
       # Disable access to hidden files/folders
       location ~* /\.(?!well-known/) {
